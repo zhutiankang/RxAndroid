@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.tiankang.rxandroid.MainActivity">
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="36sp"
+        android:id="@+id/btn_kiss"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:background="#ffff00"
+        android:text="kiss me"/>
+</RelativeLayout>
