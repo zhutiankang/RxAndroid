@@ -1,0 +1,11 @@
+这样的话就完成了整个订阅与处理事件。
+另外，一旦订阅者订阅了某个事件，就一定要记得取消订阅，不然会造成内存泄露。一般是在onStop或者是onPause中。
+
+取消订阅
+
+1.可以利用Subscription rxsub = Rxbus.getInstance()……….
+在onStop或者是onPause中使用rxsub.unsubscribe()方法就可以取消了
+而这个rxsub至于是生成一个全局的还是通过其他的方式来获取或者是取消就可以根据自己的需要来设置了，
+一定要注意避免内存泄露，对于手机内存小的积累一下很容易就OOM了
+
+2.可以利用集合的形式取消CompositeSubscription,本项目应用的
