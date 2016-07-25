@@ -59,10 +59,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 首先使用map进行类型转换，将Object类型转换为Bundle类型
+     * 首先使用map进行类型转换，将Object类型转换为Bundle类型  map 用来操作的
      * 之后在onNext中进行处理（这里使用一个参的new Action1替换）
      */
     public void operateBundle() {
+
+        subscription.add(_rxBus.toObserverable()
+                .map(new Func1<Object, Bundle>() {
+                    @Override
+                    public Bundle call(Object o) {
+                        return (Bundle) o;
+                    }
+                })
+                .subscribe(new Action1<Bundle>() {
+                    @Override
+                    public void call(Bundle bundle) {
+                        if (bundle.getString("eventname").equals("addOrderInfoGoods")) {
+                            //show(bundle);
+                        }
+                        if (bundle != null){
+                            //handle(bundle)
+                        }
+                    }
+                }));
 
         subscription.add(_rxBus.toObserverable()
                 .map(new Func1<Object, Bundle>() {
