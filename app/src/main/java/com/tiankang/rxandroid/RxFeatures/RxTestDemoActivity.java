@@ -62,6 +62,21 @@ public class RxTestDemoActivity extends Activity {
                 }
             }
         }.start();
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                for (File folder : folders) {
+                    File[] files = folder.listFiles();
+                    for (File file : files) {
+                        if (file.getName().endsWith(".png")) {
+                            final Bitmap bitmap = getBitmapFromFile(file);
+                            runOnUiThread(() -> imageCollectorView.setImageBitmap(bitmap));
+                        }
+                    }
+                }
+            }
+        }.start();
 
 
         rx.Observable.from(folders).flatMap(new Func1<File, rx.Observable<File>>() {
@@ -88,6 +103,13 @@ public class RxTestDemoActivity extends Activity {
                         imageCollectorView.setImageBitmap(bitmap);
                     }
                 });
+        rx.Observable.from(folders)
+                .flatMap(file -> Observable.from(file.listFiles()))
+                .filter(file1 -> file1.getName().endsWith("png"))
+                .map(file2 -> getBitmapFromFile(file2))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(bitmap -> imageCollectorView.setImageBitmap(bitmap));
     }
 
     private Bitmap getBitmapFromFile(File file) {
@@ -106,6 +128,10 @@ public class RxTestDemoActivity extends Activity {
                         Log.d("xxxx", "number:" + number);
                     }
                 });
+        subscription = Observable.just(1, 2, 3, 4)
+                .subscribeOn(Schedulers.io()) // 指定 subscribe() 发生在 IO 线程
+                .observeOn(AndroidSchedulers.mainThread()) // 指定 Subscriber 的回调发生在主线程
+                .subscribe(number -> Log.d("xxxx","number:" + number));
 
         /***
          * subscribeOn()只能定义一次，而观察者subscriber，observerOn()方法可以定义多次，也就是可以通过observerOn方法实现线程位置的多重转换
