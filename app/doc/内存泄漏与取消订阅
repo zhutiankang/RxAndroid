@@ -8,4 +8,19 @@
 而这个rxsub至于是生成一个全局的还是通过其他的方式来获取或者是取消就可以根据自己的需要来设置了，
 一定要注意避免内存泄露，对于手机内存小的积累一下很容易就OOM了
 
-2.可以利用集合的形式取消CompositeSubscription,本项目应用的
+订阅（Subscriptions）
+
+当调用Observable.subscribe()，会返回一个Subscription对象。这个对象代表了被观察者和订阅者之间的联系。
+Subscription subscription = Observable.just("Hello, World!")
+    .subscribe(s -> System.out.println(s));
+
+你可以在后面使用这个Subscription对象来操作被观察者和订阅者之间的联系.
+subscription.unsubscribe();
+System.out.println("Unsubscribed=" + subscription.isUnsubscribed());
+//Outputs "Unsubscribed=true"
+
+RxJava的另外一个好处就是它处理unsubscribing的时候，会停止整个调用链。如果你使用了一串很复杂的操作符，调用unsubscribe将会在他当前执行的地方终止。不需要做任何额外的工作！
+
+
+2.可以利用集合的形式取消CompositeSubscription,本项目应用的  RxBus
+3.第三方框架rxlifecycle的应用

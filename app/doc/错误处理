@@ -1,0 +1,45 @@
+1. 我们都没怎么介绍onComplete()和onError()函数。这两个函数用来通知订阅者，
+   被观察的对象将停止发送数据以及为什么停止（成功的完成或者出错了）
+Observable.just("Hello, world!")
+    .map(s -> potentialException(s))
+    .map(s -> anotherPotentialException(s))
+    .subscribe(new Subscriber<String>() {
+        @Override
+        public void onNext(String s) { System.out.println(s); }
+
+        @Override
+        public void onCompleted() { System.out.println("Completed!"); }
+
+        @Override
+        public void onError(Throwable e) { System.out.println("Ouch!"); }
+    });
+
+
+    代码中的potentialException() 和 anotherPotentialException()有可能会抛出异常。每一个Observerable对象在终结的时候都会调用onCompleted()或者onError()方法，所以Demo中会打印”Completed!”或者”Ouch!”。
+
+    这种模式有以下几个优点：
+
+    1.只要有异常发生onError()一定会被调用
+
+    这极大的简化了错误处理。只需要在一个地方处理错误即可以。
+
+    2.操作符不需要处理异常
+
+    将异常处理交给订阅者来做，Observerable的操作符调用链中一旦有一个抛出了异常，就会直接执行onError()方法。
+
+    3.你能够知道什么时候订阅者已经接收了全部的数据。
+
+    知道什么时候任务结束能够帮助简化代码的流程。（虽然有可能Observable对象永远不会结束）
+
+    我觉得这种错误处理方式比传统的错误处理更简单。传统的错误处理中，通常是在每个回调中处理错误。
+    这不仅导致了重复的代码，并且意味着每个回调都必须知道如何处理错误，你的回调代码将和调用者紧耦合在一起。
+
+    使用RxJava，Observable对象根本不需要知道如何处理错误！操作符也不需要处理错误状态-一旦发生错误，就会跳过当前和后续的操作符。所有的错误处理都交给订阅者来做。
+
+2. 指定执行线程，可以参考写出网络访问框架，返回类型 Observable<Bitmap>
+    myObservableServices.retrieveImage(url)
+       .subscribeOn(Schedulers.io())
+       .observeOn(AndroidSchedulers.mainThread())
+       .subscribe(bitmap -> myImageView.setImageBitmap(bitmap));
+3.记住这个系列仅仅是对RxJava的一个入门介绍。RxJava中有更多的我没介绍的功能等你探索（比如backpressure）。
+  当然我也不是所有的代码都使用响应式的方式–仅仅当代码复杂到我想将它分解成简单的逻辑的时候，我才使用响应式代码。
