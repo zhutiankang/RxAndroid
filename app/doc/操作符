@@ -7,7 +7,7 @@ RxJava的强大性就来自于它所定义的操作符。
 另外，RxJava也使我们处理数据的方式变得更简单。在最后一个例子里，我们调用了两个API，对API返回的数据进行了处理，然后保存到磁盘。
 但是我们的Subscriber并不知道这些，它只是认为自己在接收一个Observable<String>对象。良好的封装性也带来了编码的便利！
 1. create
-2. just
+2. just  将传入的参数依次发送出来 just(T...): 将传入的参数依次发送出来
 
 
 3.单个Action
@@ -43,7 +43,7 @@ lambda：
                       .subscribeOn(Schedulers.io())
                       .observeOn(AndroidSchedulers.mainThread())
                       .subscribe(bitmap -> imageCollectorView.setImageBitmap(bitmap));
-5.from 它接收一个集合作为输入，然后每次输出一个元素给subscriber
+5.from 它接收一个集合作为输入，然后每次输出一个元素给subscriber from(T[]) / from(Iterable<? extends T>) : 将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。
 
 6.flatMap() 遍历  与Observable.from结合用对集合进行遍历    它可以返回任何它想返回的Observable对象
         Observable.flatMap()接收一个Observable的输出作为输入，同时输出另外一个Observable
@@ -96,3 +96,4 @@ lambda：
          这样你可以知道有哪些操作符可以使用。弄懂这些操作符可能会花一些时间，但是一旦弄懂了，
          你就完全掌握了RxJava的威力。
 
+11.defer()来包装缓慢的代码   绝大多数时候Observable.just() 和 Observable.from() 能够帮助你从遗留代码中创建 Observable 对象
