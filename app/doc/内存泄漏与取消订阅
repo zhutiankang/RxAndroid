@@ -23,4 +23,4 @@ RxJava的另外一个好处就是它处理unsubscribing的时候，会停止整�
 
 
 2.可以利用集合的形式取消CompositeSubscription,本项目应用的  RxBus
-3.第三方框架rxlifecycle的应用
+3.第三方框架rxlifecycle的应用  minsdk 14
