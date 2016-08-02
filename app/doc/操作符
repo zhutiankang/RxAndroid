@@ -34,13 +34,26 @@ Action1<String> onNextAction = new Action1<String>() {
         System.out.println(s);
     }
 };
-Action1<String> onError = new Action1<String>() {
+Action1<Throwable> onErrorAction = new Action1<Throwable>() {
     @Override
-    public void call(String s) {
-        System.out.println(s);
+    public void call(Throwable e) {
+        //System.out.println(e);
+        Error handling;
     }
 };
-
+Action0 onCompletedAction = new Action0() {
+    // onCompleted()
+    @Override
+    public void call() {
+        Log.d(tag, "completed");
+    }
+};
+简单解释一下这段代码中出现的 Action1 和 Action0。 Action0 是 RxJava 的一个接口，它只有一个方法 call()，这个方法是无参无返回值的；
+由于 onCompleted() 方法也是无参无返回值的，因此 Action0 可以被当成一个包装对象，将 onCompleted() 的内容打包起来将自己作为一个参数传入 subscribe() 以实现不完整定义的回调。
+这样其实也可以看做将 onCompleted() 方法作为参数传进了 subscribe()，相当于其他某些语言中的『闭包』。
+Action1 也是一个接口，它同样只有一个方法 call(T param)，这个方法也无返回值，但有一个参数；与 Action0 同理，
+由于 onNext(T obj) 和 onError(Throwable error) 也是单参数无返回值的，因此 Action1 可以将 onNext(obj) 和 onError(error) 打包起来传入 subscribe() 以实现不完整定义的回调。
+事实上，虽然 Action0 和 Action1 在 API 中使用最广泛，但 RxJava 是提供了多个 ActionX 形式的接口 (例如 Action2, Action3) 的，它们可以被用以包装不同的无返回值的方法
 4.map 的功能就是在observable和subscribe之间可以对数据进行基本操作，可以与方法结合用
       Observable.just("Hello, world!")
           .map(s -> s.hashCode())
@@ -54,15 +67,25 @@ Action1<String> onError = new Action1<String>() {
                       .subscribeOn(Schedulers.io())
                       .observeOn(AndroidSchedulers.mainThread())
                       .subscribe(bitmap -> imageCollectorView.setImageBitmap(bitmap));
+
+      map() 是一对一的转化，一个学生对返回一个名字，，而我现在的要求是一对多的转化  一个学生对返回多个课程  怎么才能把一个 Student 转化成多个 Course 用flatmap
+
 5.from 它接收一个集合作为输入，然后每次输出一个元素给subscriber from(T[]) / from(Iterable<? extends T>) : 将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。
 
-6.flatMap() 遍历  与Observable.from结合用对集合进行遍历    它可以返回任何它想返回的Observable对象
+6.flatMap() 遍历  与Observable.from结合用  可以对集合进行遍历 输入集合 输出各个元素    它可以返回任何它想返回的Observable对象
         Observable.flatMap()接收一个Observable的输出作为输入，同时输出另外一个Observable
    flatMap输出的新的Observable正是我们在Subscriber想要接收的。现在Subscriber不再收到List<String>，而是收到一些列单个的字符串，就像Observable.from()的输出一样。
    这部分也是我当初学RxJava的时候最难理解的部分，一旦我突然领悟了，RxJava的很多疑问也就一并解决了。
    query("Hello, world!")
        .flatMap(urls -> Observable.from(urls))
        .subscribe(url -> System.out.println(url));
+        flatMap() 和 map() 有一个相同点：它也是把传入的参数转化之后返回另一个对象。
+        但需要注意，和 map() 不同的是， flatMap() 中返回的是个 Observable 对象，并且这个 Observable 对象并不是被直接发送到了 Subscriber 的回调方法中。
+        flatMap() 的原理是这样的：1. 使用传入的事件对象创建一个 Observable 对象；
+                                 2. 并不发送这个 Observable, 而是将它激活，于是它开始发送事件；所以才可以使用Observable.from(urls)
+                                 3. 每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法。
+       把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。
+       而这个『铺平』就是 flatMap() 所谓的 flat。
 
    query("Hello, world!")
        .flatMap(urls -> Observable.from(urls))
@@ -73,6 +96,25 @@ Action1<String> onError = new Action1<String>() {
        是不是感觉很不可思议？我竟然能将多个独立的返回Observable对象的方法组合在一起！帅呆了！
        不止这些，我还将两个API的调用组合到一个链式调用中了。我们可以将任意多个API调用链接起来。大家应该都应该知道同步所有的API调用，然后将所有API调用的回调结果组合成需要展示的数据
        是一件多么蛋疼的事情。这里我们成功的避免了callback hell（多层嵌套的回调，导致代码难以阅读维护）。现在所有的逻辑都包装成了这种简单的响应式调用。
+
+扩展：由于可以在嵌套的 Observable 中添加异步代码， flatMap() 也常用于嵌套的异步操作，例如嵌套的网络请求。示例代码（Retrofit + RxJava）：
+
+networkClient.token() // 返回 Observable<String>，在订阅时请求 token，并在响应后发送 token
+    .flatMap(new Func1<String, Observable<Messages>>() {
+        @Override
+        public Observable<Messages> call(String token) {
+            // 返回 Observable<Messages>，在订阅时请求消息列表，并在响应后发送请求到的消息列表
+            return networkClient.messages();
+        }
+    })
+    .subscribe(new Action1<Messages>() {
+        @Override
+        public void call(Messages messages) {
+            // 处理显示消息列表
+            showMessages(messages);
+        }
+    });
+传统的嵌套请求需要使用嵌套的 Callback 来实现。而通过 flatMap() ，可以把嵌套的请求写在一条链中，从而保持程序逻辑的清晰。
 
 7.filter 过滤  filter()输出和输入相同的元素，并且会过滤掉那些不满足检查条件的。
    .filter(file1 -> file1.getName().endsWith("png"))
