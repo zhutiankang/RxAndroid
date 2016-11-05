@@ -72,7 +72,7 @@ Action1 也是一个接口，它同样只有一个方法 call(T param)，这个�
 
 5.from 它接收一个集合作为输入，然后每次输出一个元素给subscriber from(T[]) / from(Iterable<? extends T>) : 将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。
 
-6.flatMap() 遍历  与Observable.from结合用  可以对集合进行遍历 输入集合 输出各个元素    它可以返回任何它想返回的Observable对象
+6.flatMap() 遍历  一对多  与Observable.from结合用  可以对集合进行遍历 输入集合 输出各个元素    它可以返回任何它想返回的Observable对象
         Observable.flatMap()接收一个Observable的输出作为输入，同时输出另外一个Observable
    flatMap输出的新的Observable正是我们在Subscriber想要接收的。现在Subscriber不再收到List<String>，而是收到一些列单个的字符串，就像Observable.from()的输出一样。
    这部分也是我当初学RxJava的时候最难理解的部分，一旦我突然领悟了，RxJava的很多疑问也就一并解决了。
